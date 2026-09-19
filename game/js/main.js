@@ -65,7 +65,7 @@ const gardenDone = {};
 const quests = {
   letter: { title: "拆开纸船", hint: "座位扶手上有一艘纸船，按 E", place: "航班舱内" },
   door: { title: "下飞机", hint: "沿着过道走到发光的舱门，按 E", place: "航班舱内" },
-  taxi: { title: "做出租车", hint: "走下舷梯，去停在路边的黄色出租车", place: "双流机场到达" },
+  taxi: { title: "坐出租车", hint: "走下舷梯，去停在路边的黄色出租车", place: "双流机场到达" },
   ride: { title: "前往温江", hint: "坐稳，车正开向右岸天鹅湖民宿", place: "出租车上" },
   desk: { title: "办理入住", hint: "走进大堂，去前台办理入住", place: "右岸天鹅湖民宿" },
   awen: { title: "找阿文和王老师", hint: "16:30 破冰。去草坪找这一对 NPC 领 Bingo", place: "婚礼草坪" },
