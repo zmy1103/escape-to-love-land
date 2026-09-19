@@ -249,11 +249,11 @@ window.GAME_DATA = {
       name: "小敏",
       shirt: 0xf0c27a,
       hair: 0x6a4030,
-      hello: "我家那位叫臭臭。不是新郎，是猫……也是孩子的小名。",
+      hello: "带娃来的。我家臭臭两岁十个月，是个小男孩，今晚托人看着。",
       tags: ["chouchou"],
       questions: [
-        { ask: "你是“臭臭”的爸爸或妈妈吗？", bingo: "chouchou", yes: "我是。臭臭今晚托人看了。" },
-        { ask: "臭臭是谁？", bingo: "chouchou", yes: "家里的宝。我们就是臭臭的爸妈。" },
+        { ask: "你是“臭臭”的爸爸或妈妈吗？", bingo: "chouchou", yes: "我是。两岁十个月的儿子，今晚托人看了。" },
+        { ask: "臭臭是谁？", bingo: "chouchou", yes: "我们的儿子，两岁十个月的小男孩。我们就是臭臭的爸妈。" },
       ],
     },
     {

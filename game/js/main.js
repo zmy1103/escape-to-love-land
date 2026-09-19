@@ -9,7 +9,7 @@ import {
   createDiningHall,
   createKid,
   blocked,
-} from "./worlds.js?v=tang1";
+} from "./worlds.js?v=guide3";
 import { openMini as runMini, stopMini, openBoothStudio, paintPolaroid } from "./minigames.js?v=replay1";
 
 const D = () => window.GAME_DATA;
@@ -56,6 +56,8 @@ let partyIndex = 0;
 let partyPhase = "idle";
 let warmupReady = false;
 let dancing = false;
+let danceHold = 0;
+let danceCam = false;
 let audioCtx = null;
 let audioNodes = [];
 let musicEl = null;
@@ -71,7 +73,11 @@ const quests = {
   awen: { title: "找阿文和王老师", hint: "16:30 破冰。去草坪找这一对 NPC 领 Bingo", place: "婚礼草坪" },
   bingo: { title: "填写 Bingo Card", hint: "和宾客交谈后会自动写入名字。想快体验：打开背包里的 Bingo Card，点「一键全填并保存」", place: "婚礼草坪" },
   redeem: { title: "换取 50 筹码", hint: "Bingo 已写满，回去找阿文和王老师", place: "婚礼草坪" },
-  lawnTasks: { title: "合影与寻宝", hint: "找阿摄阿录拍一张，再去椅子下面找回散落筹码", place: "婚礼草坪" },
+  lawnTasks: {
+    title: "合影与寻宝",
+    hint: "去草坪右侧、钟意赌坊旁边找阿摄阿录（跟着高高的金色光标和「摄影摄像」牌子），再去左侧椅子下面找回散落筹码",
+    place: "婚礼草坪",
+  },
   dice: { title: "去猜大小", hint: "去钟意赌坊押一轮即可。有筹码可以一直赌，直到口袋空了", place: "婚礼草坪" },
   dinner: { title: "前往月光晚宴", hint: "去草坪尽头的「月光晚宴入口」，按 E 进入长桌区", place: "婚礼草坪" },
   ushers: { title: "找芊一和珂满", hint: "就餐区门口领欢迎卡和 Party 流程", place: "月光晚宴" },
@@ -141,7 +147,7 @@ const talkNext = document.getElementById("talk-next");
 const fadeEl = document.getElementById("fade");
 
 function uiBusy() {
-  return uiOpen || talkEl.hidden === false;
+  return uiOpen || talkEl.hidden === false || danceHold > 0;
 }
 
 function playedGardenGames() {
@@ -195,11 +201,41 @@ function currentQuestId() {
   return "done";
 }
 
+function facingHint(tx, tz) {
+  const dx = tx - player.position.x;
+  const dz = tz - player.position.z;
+  const dist = Math.hypot(dx, dz);
+  if (dist < 2.4) return "就在你旁边，按 E";
+  const fwdX = -Math.sin(camYaw);
+  const fwdZ = -Math.cos(camYaw);
+  const dot = fwdX * dx + fwdZ * dz;
+  const cross = fwdX * dz - fwdZ * dx;
+  let face = "身后";
+  if (dot > 0 && Math.abs(cross) < Math.max(dist * 0.35, 1.2)) face = "正前方";
+  else if (cross > 0 && dot > 0) face = "右前方";
+  else if (cross < 0 && dot > 0) face = "左前方";
+  else if (cross > 0) face = "右后方";
+  else face = "左后方";
+  return `在你的${face}`;
+}
+
+function lawnTaskHint() {
+  if (!flags.photo) {
+    const photo = world?.name === "resort" ? world.interactives.find((i) => i.id === "photo") : null;
+    const dir = photo ? `——${facingHint(photo.x, photo.z)}` : "";
+    if (flags.hiddenChip) {
+      return `去草坪右侧、钟意赌坊旁边找阿摄阿录拍一张。跟着高高的金色光标和「摄影摄像」牌子${dir}`;
+    }
+    return `先去草坪右侧、钟意赌坊旁边找阿摄阿录拍一张。跟着高高的金色光标和「摄影摄像」牌子${dir}`;
+  }
+  return "合影好了。去草坪左侧那几把木椅下面，找回散落的筹码。";
+}
+
 function setQuestFromFlags() {
   const id = currentQuestId();
   const q = quests[id];
   hudTitle.textContent = q.title;
-  hudHint.textContent = q.hint;
+  hudHint.textContent = id === "lawnTasks" ? lawnTaskHint() : q.hint;
   hudPlace.textContent = q.place;
   refreshAwenMarker();
   refreshLawnMarkers();
@@ -297,6 +333,12 @@ function refreshLawnMarkers() {
   const lunch = world.interactives.find((i) => i.id === "lunch");
   const toG = world.interactives.find((i) => i.id === "toGarden");
   const zy = world.interactives.find((i) => i.id === "zhongyi");
+  const photo = world.interactives.find((i) => i.id === "photo");
+  if (photo) {
+    const show = flags.bingoReward && !flags.photo;
+    photo.locked = false;
+    if (photo.marker) photo.marker.visible = show;
+  }
   if (hide) {
     const show = flags.bingoReward && !flags.hiddenChip;
     hide.locked = !show;
@@ -945,16 +987,7 @@ function closeWarmup() {
   setQuestFromFlags();
 }
 
-function joinDance(onStage) {
-  flags.danceDone = true;
-  flags.dancedOnStage = onStage;
-  if (world) world.stageDancing = true;
-  ensureDay1Music();
-  dancing = true;
-  if (onStage) {
-    player.position.set(0.75, 0, -11.1);
-    player.rotation.y = 0;
-  }
+function beginDanceTalk(onStage) {
   talkLines = [
     {
       who: "erjie",
@@ -964,12 +997,54 @@ function joinDance(onStage) {
   ];
   talkI = 0;
   talkChoices = null;
-  talkDone = () => {
-    setQuestFromFlags();
-  };
-  lockedMove = true;
   talkEl.hidden = false;
   showTalk();
+}
+
+function posePlayerDance(t) {
+  const { la, ra, ll, rl } = player.userData.limbs || {};
+  if (!la) return;
+  const beat = t * 8;
+  const lift = -1.08 + Math.sin(beat) * 0.22;
+  la.rotation.x = lift;
+  ra.rotation.x = lift;
+  ll.rotation.x = Math.sin(beat) * 0.28;
+  rl.rotation.x = -Math.sin(beat) * 0.28;
+  player.position.y = Math.abs(Math.sin(beat)) * 0.1;
+}
+
+function stopPlayerDance() {
+  dancing = false;
+  danceCam = false;
+  danceHold = 0;
+  player.position.y = 0;
+  const { la, ra, ll, rl } = player.userData.limbs || {};
+  if (la) la.rotation.x = ra.rotation.x = ll.rotation.x = rl.rotation.x = 0;
+}
+
+function joinDance(onStage) {
+  flags.danceDone = true;
+  flags.dancedOnStage = onStage;
+  if (world) world.stageDancing = true;
+  ensureDay1Music();
+  dancing = true;
+  lockedMove = true;
+  talkChoices = null;
+  talkDone = () => {
+    stopPlayerDance();
+    setQuestFromFlags();
+  };
+  if (onStage) {
+    player.position.set(0.75, 0, -11.1);
+    player.rotation.y = 0;
+    danceCam = true;
+    danceHold = 3.2;
+    talkEl.hidden = true;
+  } else {
+    danceCam = false;
+    danceHold = 0;
+    beginDanceTalk(false);
+  }
 }
 
 function showPartyAct() {
@@ -1512,6 +1587,8 @@ document.getElementById("btn-reset").onclick = () => {
   partyPhase = "idle";
   warmupReady = false;
   dancing = false;
+  danceCam = false;
+  danceHold = 0;
   stopMusic();
   inventory.length = 0;
   chips[50] = chips[100] = chips[500] = chips[1000] = 0;
@@ -1668,6 +1745,13 @@ const clock = new THREE.Clock();
 function tick() {
   const dt = Math.min(clock.getDelta(), 0.05);
   animT += dt;
+  if (danceHold > 0) {
+    danceHold -= dt;
+    if (danceHold <= 0) {
+      danceHold = 0;
+      beginDanceTalk(true);
+    }
+  }
   if (world?.update) world.update(animT);
 
   if (started && world?.cinematic && world.path) {
@@ -1739,23 +1823,32 @@ function tick() {
       moving = true;
     }
     const { la, ra, ll, rl } = player.userData.limbs;
+    if (dancing && flags.dancedOnStage) {
+      posePlayerDance(animT);
+    } else {
       const swing = moving ? Math.sin(animT * 10) * 0.55 : dancing ? Math.sin(animT * 8) * 0.7 : 0;
-    la.rotation.x = swing;
-    ra.rotation.x = -swing;
-    ll.rotation.x = -swing;
-    rl.rotation.x = swing;
+      la.rotation.x = swing;
+      ra.rotation.x = -swing;
+      ll.rotation.x = -swing;
+      rl.rotation.x = swing;
+    }
 
-    const dist = 4.6;
-    const ch = 1.72;
-    camera.position.lerp(
-      new THREE.Vector3(
-        player.position.x + Math.sin(camYaw) * dist,
-        player.position.y + ch + camPitch * 2.5,
-        player.position.z + Math.cos(camYaw) * dist
-      ),
-      0.12
-    );
-    camera.lookAt(player.position.x, player.position.y + 1.05, player.position.z);
+    if (danceCam) {
+      camera.position.lerp(new THREE.Vector3(player.position.x + 3.2, 2.15, player.position.z + 3.4), 0.12);
+      camera.lookAt(player.position.x, 1.05, player.position.z - 0.2);
+    } else {
+      const dist = 4.6;
+      const ch = 1.72;
+      camera.position.lerp(
+        new THREE.Vector3(
+          player.position.x + Math.sin(camYaw) * dist,
+          player.position.y + ch + camPitch * 2.5,
+          player.position.z + Math.cos(camYaw) * dist
+        ),
+        0.12
+      );
+      camera.lookAt(player.position.x, player.position.y + 1.05, player.position.z);
+    }
 
     near = null;
     let best = 9;
@@ -1774,6 +1867,10 @@ function tick() {
     } else {
       promptEl.hidden = true;
     }
+    if (currentQuestId() === "lawnTasks") {
+      const next = lawnTaskHint();
+      if (hudHint.textContent !== next) hudHint.textContent = next;
+    }
   }
 
   renderer.render(root, camera);
@@ -1789,9 +1886,16 @@ window.__ll = {
   flags,
   chips,
   bingo,
+  get camYaw() {
+    return camYaw;
+  },
+  set camYaw(v) {
+    camYaw = v;
+  },
   skipRide() {
     rideT = 1;
   },
+  setQuestFromFlags,
   goBanquet,
   goHotel,
   goGarden,

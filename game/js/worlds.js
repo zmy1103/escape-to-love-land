@@ -42,16 +42,37 @@ export function addBox(parent, material, w, h, d, x, y, z, colliders, receive = 
   return mesh;
 }
 
-export function addMarker(parent, x, y, z) {
+export function addMarker(parent, x, y, z, opts = {}) {
   const g = new THREE.Group();
+  const tall = !!opts.tall;
+  const size = opts.size || (tall ? 0.34 : 0.18);
+  const color = opts.color ?? PAL.sun;
+  const emissive = opts.emissive ?? 0xffee88;
+  const intensity = opts.emissiveIntensity ?? (tall ? 1.4 : 0.85);
+  if (tall) {
+    const pole = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.028, 0.04, Math.max(0.4, y * 0.82), 8),
+      mat(0xc4a35a, { emissive: 0xffcc55, emissiveIntensity: 0.55, roughness: 0.35 })
+    );
+    pole.position.y = y * 0.4;
+    const ring = new THREE.Mesh(
+      new THREE.TorusGeometry(0.24, 0.038, 8, 18),
+      mat(0xffee88, { emissive: 0xffee88, emissiveIntensity: 1.15, roughness: 0.22 })
+    );
+    ring.rotation.x = Math.PI / 2;
+    ring.position.y = y - 0.18;
+    g.add(pole, ring);
+    g.userData.ring = ring;
+  }
   const gem = new THREE.Mesh(
-    new THREE.OctahedronGeometry(0.18),
-    mat(PAL.sun, { emissive: 0xffee88, emissiveIntensity: 0.85, roughness: 0.3 })
+    new THREE.OctahedronGeometry(size),
+    mat(color, { emissive, emissiveIntensity: intensity, roughness: 0.3 })
   );
   gem.position.y = y;
   g.add(gem);
   g.position.set(x, 0, z);
   g.userData.gem = gem;
+  g.userData.baseY = y;
   parent.add(g);
   return g;
 }
@@ -149,6 +170,53 @@ export function createKid({ shirt = PAL.shirt, hair = PAL.hair, skin = PAL.skin,
   });
   root.userData.limbs = { la, ra, ll, rl };
   if (name) addNameTag(root, name);
+  return root;
+}
+
+export function createWoman({ shirt = 0xb76e7d, hair = PAL.hair, skin = PAL.skin, name = "" } = {}) {
+  const root = new THREE.Group();
+  const bodice = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.28, 0.16), mat(shirt));
+  bodice.position.y = 0.86;
+  const skirt = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.14, 0.46, 12), mat(shirt));
+  skirt.position.y = 0.48;
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.155, 16, 12), mat(skin));
+  head.position.y = 1.12;
+  const hairTop = new THREE.Mesh(new THREE.SphereGeometry(0.17, 16, 12), mat(hair));
+  hairTop.scale.set(1.08, 0.82, 1.1);
+  hairTop.position.set(0, 1.22, 0.01);
+  const hairBack = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.38, 0.12), mat(hair));
+  hairBack.position.set(0, 0.96, 0.1);
+  const hairL = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.34, 0.08), mat(hair));
+  hairL.position.set(-0.15, 0.98, 0.02);
+  const hairR = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.34, 0.08), mat(hair));
+  hairR.position.set(0.15, 0.98, 0.02);
+  const flower = new THREE.Mesh(new THREE.SphereGeometry(0.04, 8, 6), mat(0xe8b0c0));
+  flower.position.set(0.13, 1.24, 0.1);
+
+  const mkLimb = (w, h, d, color) => {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat(color));
+    m.castShadow = true;
+    return m;
+  };
+  const la = mkLimb(0.07, 0.32, 0.07, shirt);
+  la.position.set(-0.2, 0.82, 0);
+  const ra = mkLimb(0.07, 0.32, 0.07, shirt);
+  ra.position.set(0.2, 0.82, 0);
+  const ll = mkLimb(0.09, 0.22, 0.09, 0x2c333c);
+  ll.position.set(-0.08, 0.14, 0);
+  const rl = mkLimb(0.09, 0.22, 0.09, 0x2c333c);
+  rl.position.set(0.08, 0.14, 0);
+
+  [bodice, skirt, head, hairTop, hairBack, hairL, hairR, flower, la, ra, ll, rl].forEach((m) => {
+    m.castShadow = true;
+    root.add(m);
+  });
+  root.userData.limbs = { la, ra, ll, rl };
+  if (name) {
+    const tag = addNameTag(root, name);
+    tag.position.y = 1.48;
+    if (name.length >= 4) tag.scale.set(0.68, 0.15, 1);
+  }
   return root;
 }
 
@@ -821,7 +889,7 @@ export function createResort(texVenue) {
   giftBox(scene, -0.28, 1.22, 3.25, 0xe8d9b0);
   lantern(scene, 0.85, 1.35, 3.15);
 
-  const clerk = createKid({ shirt: PAL.sage, hair: 0x4a3020, name: "接待" });
+  const clerk = createWoman({ shirt: PAL.sage, hair: 0x4a3020, name: "接待姐姐" });
   clerk.position.set(0.7, 0, 3.5);
   clerk.rotation.y = Math.PI;
   scene.add(clerk);
@@ -935,14 +1003,41 @@ export function createResort(texVenue) {
   const vid = createKid({ shirt: 0x3a3a48, hair: 0x222222, name: "阿录" });
   vid.position.set(7.1, 0, lawnZ + 2.6);
   vid.rotation.y = -0.9;
+  [cam, vid].forEach((who) => {
+    who.traverse((o) => {
+      if (o.isSprite) {
+        o.position.y = 1.58;
+        o.scale.set(0.72, 0.19, 1);
+      }
+    });
+  });
   scene.add(cam, vid);
   addBox(scene, mat(0x222222), 0.22, 0.14, 0.28, 6.55, 1.15, lawnZ + 1.7, null);
+  cameraTripod(scene, 5.85, lawnZ + 1.55, 0.35);
+  const photoPad = new THREE.Mesh(
+    new THREE.CircleGeometry(1.2, 22),
+    mat(0xc4a35a, { emissive: 0xaa8833, emissiveIntensity: 0.28, roughness: 0.55 })
+  );
+  photoPad.rotation.x = -Math.PI / 2;
+  photoPad.position.set(6.75, 0.04, lawnZ + 2.3);
+  scene.add(photoPad);
+  addBox(scene, mat(PAL.wood), 0.08, 1.85, 0.08, 6.75, 0.92, lawnZ + 1.05, colliders);
+  const photoSign = makeSign("摄影摄像 · 阿摄阿录", 2.15, 0.52);
+  photoSign.position.set(6.75, 2.08, lawnZ + 1.02);
+  scene.add(photoSign);
+  addBox(scene, mat(PAL.wood), 0.08, 1.7, 0.08, 3.35, 0.85, -8.15, colliders);
+  const waySign = makeSign("→ 右侧找阿摄阿录", 2.05, 0.48);
+  waySign.position.set(3.35, 1.88, -8.18);
+  scene.add(waySign);
+  const photoMark = addMarker(scene, 6.6, 3.25, lawnZ + 2.2, { tall: true, size: 0.36 });
+  photoMark.visible = false;
   interactives.push({
     id: "photo",
     x: 6.6,
     z: lawnZ + 2.2,
-    r: 1.7,
+    r: 2.1,
     label: "按 E 和摄影摄像拍一张",
+    marker: photoMark,
   });
 
   const hideX = -5.4;
@@ -983,7 +1078,12 @@ export function createResort(texVenue) {
     update(t) {
       interactives.forEach((it) => {
         if (it.marker?.visible && it.marker.userData.gem) {
-          it.marker.userData.gem.position.y = 1.6 + Math.sin(t * 2.2 + 1) * 0.12;
+          const base = it.marker.userData.baseY ?? 1.6;
+          const bob = it.id === "photo" ? 0.2 : 0.12;
+          it.marker.userData.gem.position.y = base + Math.sin(t * 2.2 + 1) * bob;
+          if (it.marker.userData.ring) {
+            it.marker.userData.ring.rotation.z = t * 1.4;
+          }
         }
       });
     },
@@ -1199,7 +1299,7 @@ export function createHotelMorning() {
   woodenChair(scene, 1.55, 0.05, Math.PI);
   drapedTable(scene, 1.6, -1.2, 2.15, 1.15, colliders, 0.72);
   breakfastSpread(scene, 1.6, -1.2, 0.78);
-  const clerk = createKid({ shirt: PAL.sage, hair: 0x4a3020, name: "接待" });
+  const clerk = createWoman({ shirt: PAL.sage, hair: 0x4a3020, name: "接待姐姐" });
   clerk.position.set(-2.2, 0, 1.2);
   clerk.rotation.y = 0.4;
   scene.add(clerk);
