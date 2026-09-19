@@ -243,21 +243,13 @@ function renderBag() {
         const rows = (D().partyFlow || [])
           .map((x) => `<li><b>${x.t}</b>${x.d ? ` <span class="muted">${x.d}</span>` : ""}</li>`)
           .join("");
-        document.getElementById("mini-title").textContent = "Party 流程";
-        document.getElementById("mini-text").innerHTML = `<ol class="flow-list">${rows}</ol>`;
-        document.getElementById("mini-play").hidden = true;
-        document.getElementById("game-overlay").hidden = false;
-        uiOpen = true;
-        lockedMove = true;
+        openBagDoc("Party 流程", `<ol class="flow-list">${rows}</ol>`);
       }
       if (b.dataset.open === "vowcard") {
-        document.getElementById("mini-title").textContent = "问誓卡";
-        document.getElementById("mini-text").innerHTML =
-          "<p>请在仪式上举起这张卡，和全体亲友一起问：</p><p><b>小钟、阿旭，你们是否愿意，把余生过成一场认真的逃跑计划？</b></p><p>你们是否愿意，在树下彼此成为自由而靠近的人？</p>";
-        document.getElementById("mini-play").hidden = true;
-        document.getElementById("game-overlay").hidden = false;
-        uiOpen = true;
-        lockedMove = true;
+        openBagDoc(
+          "问誓卡",
+          "<p>请在仪式上举起这张卡，和全体亲友一起问：</p><p><b>小钟、阿旭，你们是否愿意，把余生过成一场认真的逃跑计划？</b></p><p>你们是否愿意，在树下彼此成为自由而靠近的人？</p>"
+        );
       }
       if (b.dataset.open === "seatmap") openSeatMap();
       if (b.dataset.open === "photo" || b.dataset.open === "boothSnap") {
@@ -531,16 +523,29 @@ async function goDining() {
   }
   refreshLawnMarkers();
   setQuestFromFlags();
+  startMusic("farewell");
 }
 
-function openSeatMap() {
-  document.getElementById("mini-title").textContent = "座位图";
-  document.getElementById("mini-text").innerHTML =
-    "<p>领取对应颜色手环 · 仪式结束后按桌号入席</p><img src='assets/seats.png' alt='座位图' class='seat-map'>";
+function openBagDoc(title, html) {
+  stopMini();
+  const panel = document.getElementById("mini-panel");
+  panel.className = "dice-panel mini-panel";
+  document.getElementById("mini-title").textContent = title;
+  document.getElementById("mini-text").innerHTML = html;
+  document.getElementById("mini-playfield").innerHTML = "";
+  document.getElementById("mini-playfield").className = "mini-playfield";
+  document.getElementById("mini-result").textContent = "";
   document.getElementById("mini-play").hidden = true;
   document.getElementById("game-overlay").hidden = false;
   uiOpen = true;
   lockedMove = true;
+}
+
+function openSeatMap() {
+  openBagDoc(
+    "座位图",
+    "<p>领取对应颜色手环 · 仪式结束后按桌号入席</p><img src='assets/seats.png' alt='座位图' class='seat-map'>"
+  );
 }
 
 function chipCount() {
@@ -684,7 +689,11 @@ function openLetter(grant = true) {
   document.getElementById("letter-overlay").hidden = false;
   uiOpen = true;
   lockedMove = true;
-  document.getElementById("letter-ok").textContent = grant ? "收进背包，去下飞机" : "放回背包";
+  document.getElementById("letter-ok").textContent = grant
+    ? isTouchMode()
+      ? "收进背包"
+      : "收进背包，去下飞机"
+    : "放回背包";
   document.getElementById("letter-ok").onclick = stashLetter;
 }
 
@@ -708,7 +717,7 @@ function openBingo() {
   grid.innerHTML = D()
     .bingoCells.map(
       (c) =>
-        `<input data-cell="${c.id}" maxlength="8" placeholder="名字" value="${bingo[c.id] || ""}" />`
+        `<input data-cell="${c.id}" maxlength="8" size="6" placeholder="名字" value="${bingo[c.id] || ""}" />`
     )
     .join("");
   document.getElementById("bingo-progress").textContent = `${bingoCount()}/16 格`;
@@ -822,17 +831,20 @@ function burstFireworks() {
 
 function startMusic(track = "dance") {
   stopMusic();
-  const file = track === "cheers" ? "cheers.mp3" : "dance.mp3";
-  const skip = 3;
+  const files = { cheers: "cheers.mp3", dance: "dance.mp3", farewell: "cixing.mp3" };
+  const file = files[track] || "dance.mp3";
+  const skip = track === "cheers" || track === "dance" ? 3 : 0;
   try {
     musicEl = new Audio(`assets/${file}`);
     musicEl.loop = true;
-    musicEl.volume = 0.55;
+    musicEl.volume = track === "farewell" ? 0.48 : 0.55;
     const jumpIn = () => {
-      if (musicEl && musicEl.currentTime < skip) musicEl.currentTime = skip;
+      if (skip && musicEl && musicEl.currentTime < skip) musicEl.currentTime = skip;
     };
-    musicEl.addEventListener("loadedmetadata", jumpIn);
-    musicEl.addEventListener("timeupdate", jumpIn);
+    if (skip) {
+      musicEl.addEventListener("loadedmetadata", jumpIn);
+      musicEl.addEventListener("timeupdate", jumpIn);
+    }
     musicEl.play().then(jumpIn).catch(() => {});
   } catch (_) {}
 }
@@ -1497,7 +1509,7 @@ document.getElementById("bag-close").onclick = () => {
   document.getElementById("bag").hidden = true;
 };
 document.getElementById("bingo-fill").onclick = fillAllBingo;
-document.getElementById("bingo-save").onclick = saveBingo;
+document.getElementById("bingo-save").onclick = closeBingo;
 document.getElementById("bingo-close").onclick = closeBingo;
 document.getElementById("btn-help").onclick = openHelp;
 document.getElementById("help-close").onclick = () => {

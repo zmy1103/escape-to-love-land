@@ -138,6 +138,7 @@ button {
   justify-content: center;
   padding: 24px;
   overflow: auto;
+  gap: 12px;
 }
 #letter-overlay[hidden],
 #bingo-overlay[hidden],
@@ -150,10 +151,25 @@ button {
 }
 .letter {
   background: #fbf7ee;
-  max-width: 480px;
+  width: min(480px, 100%);
+  max-height: min(72vh, calc(100dvh - 120px));
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  box-sizing: border-box;
   padding: 28px 32px;
   line-height: 1.85;
   box-shadow: 0 18px 50px rgba(0, 0, 0, 0.25);
+}
+.letter h2 {
+  margin: 6px 0 10px;
+  font-size: 22px;
+  line-height: 1.35;
+}
+#letter-body p {
+  margin: 0.22em 0;
+}
+#letter-ok {
+  flex-shrink: 0;
 }
 .letter-hint {
   color: var(--gold);
@@ -225,6 +241,7 @@ button {
 .bingo-sheet {
   position: relative;
   background: #f6f0de;
+  overflow: hidden;
 }
 .bingo-sheet img {
   width: 100%;
@@ -232,24 +249,34 @@ button {
 }
 .bingo-grid {
   position: absolute;
-  left: 6.5%;
+  left: 7.4%;
   top: 21%;
-  width: 87%;
-  height: 68%;
+  width: 85.2%;
+  height: 67.2%;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   grid-template-rows: repeat(4, 1fr);
-  gap: 1.1%;
+  gap: 2.6% 2.4%;
+  pointer-events: none;
 }
 .bingo-grid input {
+  pointer-events: auto;
+  min-width: 0;
+  width: 78%;
+  max-width: 78%;
+  justify-self: center;
   align-self: end;
-  margin: 0 6% 8%;
+  margin: 0 0 12%;
+  padding: 1px 4px 0;
+  box-sizing: border-box;
   border: none;
   border-bottom: 1px dashed #4c5840;
-  background: rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.55);
   font-family: inherit;
   font-size: 12px;
+  line-height: 1.2;
   text-align: center;
+  overflow: hidden;
 }
 .dice-panel,
 .help-card {
@@ -510,6 +537,39 @@ button {
   }
   .bingo-wrap {
     width: min(560px, 96vw);
+  }
+  #letter-overlay {
+    justify-content: flex-end;
+    padding: 10px 12px calc(12px + env(safe-area-inset-bottom));
+    gap: 8px;
+  }
+  .letter {
+    width: 100%;
+    max-width: none;
+    padding: 14px 16px 12px;
+    line-height: 1.5;
+    font-size: 14px;
+    max-height: calc(100dvh - 92px - env(safe-area-inset-bottom) - env(safe-area-inset-top));
+  }
+  .letter h2 {
+    font-size: 17px;
+    margin: 2px 0 6px;
+  }
+  .letter-hint {
+    font-size: 12px;
+    margin: 0 0 4px;
+    letter-spacing: 0.08em;
+  }
+  .letter footer {
+    margin-top: 8px;
+    font-size: 13px;
+  }
+  #letter-body p {
+    margin: 0.12em 0;
+  }
+  #letter-ok {
+    width: 100%;
+    padding: 12px 16px;
   }
   .dice-panel,
   .help-card,
