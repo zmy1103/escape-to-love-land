@@ -1532,10 +1532,10 @@ export function createDiningHall(texRoom, texSeats) {
 
   const tables = [
     { n: 0, title: "0 长长父父", col: 0xc47a3a, x: 0, z: -9.4, sit: false },
-    { n: 1, title: "1 · 10th", col: 0xa84a3a, x: -5.4, z: -5.1, sit: false },
-    { n: 2, title: "2 你的爱情", col: 0xd48aa0, x: 5.4, z: -5.1, sit: false },
+    { n: 1, title: "1 长长久久", col: 0xa84a3a, x: -5.4, z: -5.1, sit: false },
+    { n: 2, title: "2 你的港湾", col: 0xd48aa0, x: 5.4, z: -5.1, sit: false },
     { n: 3, title: "3 闪光的回忆", col: 0xc9a24a, x: -5.4, z: -0.6, sit: false },
-    { n: 4, title: "4 你的港湾", col: 0x6aa87a, x: 5.4, z: -0.6, sit: false },
+    { n: 4, title: "4 你的爱情", col: 0x6aa87a, x: 5.4, z: -0.6, sit: false },
     { n: 5, title: "5 海鸥", col: 0x4a8ab8, x: -5.4, z: 3.9, sit: true },
     { n: 6, title: "6 一万次悲伤", col: 0x5a6ab0, x: 5.4, z: 3.9, sit: false },
     { n: 7, title: "7 最亮的星", col: 0x2a3a6a, x: -5.4, z: 8.4, sit: false },
