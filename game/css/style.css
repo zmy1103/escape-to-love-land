@@ -81,17 +81,27 @@ button {
   line-height: 1;
   padding: 0;
 }
-#btn-bag {
+#corner-tools {
   position: fixed;
   right: 18px;
   bottom: 18px;
   z-index: 6;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+#corner-tools[hidden] {
+  display: none !important;
+}
+#btn-bag,
+#btn-tour {
   border: 0;
   border-radius: 16px;
   padding: 12px 16px;
   background: var(--paper);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
 }
+#tour,
 #bag {
   position: fixed;
   right: 18px;
@@ -103,7 +113,33 @@ button {
   padding: 14px;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
 }
-#bag h3 {
+#tour {
+  width: 300px;
+  max-height: min(68vh, 540px);
+  overflow: auto;
+}
+.tour-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  background: #fff;
+  border-radius: 10px;
+  padding: 8px 10px;
+  margin: 6px 0;
+}
+.tour-item b {
+  font-size: 14px;
+}
+.tour-item small {
+  font-size: 12px;
+  opacity: 0.68;
+  line-height: 1.4;
+}
+#bag h3,
+#tour h3 {
   margin: 0 0 8px;
   font-size: 15px;
 }
@@ -145,6 +181,7 @@ button {
 #dice-overlay[hidden],
 #help-overlay[hidden],
 #bag[hidden],
+#tour[hidden],
 #talk[hidden],
 #prompt[hidden] {
   display: none !important;
@@ -525,15 +562,17 @@ button {
   #prompt {
     bottom: 168px;
   }
-  #btn-bag {
+  #corner-tools {
     right: 18px;
     bottom: 108px;
   }
+  #tour,
   #bag {
     right: 12px;
-    left: 12px;
-    width: auto;
-    bottom: 180px;
+    left: auto;
+    width: min(300px, calc(100vw - 168px));
+    bottom: 176px;
+    max-height: calc(100dvh - 240px - env(safe-area-inset-top));
   }
   .bingo-wrap {
     width: min(560px, 96vw);

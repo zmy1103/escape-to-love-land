@@ -9,7 +9,7 @@ import {
   createDiningHall,
   createKid,
   blocked,
-} from "./worlds.js?v=desk1";
+} from "./worlds.js?v=tour1";
 import { openMini as runMini, stopMini, openBoothStudio, paintPolaroid } from "./minigames.js?v=replay1";
 
 const D = () => window.GAME_DATA;
@@ -79,12 +79,12 @@ const quests = {
     place: "婚礼草坪",
   },
   dice: { title: "去猜大小", hint: "去钟意赌坊押一轮即可。有筹码可以一直赌，直到口袋空了", place: "婚礼草坪" },
-  dinner: { title: "前往月光晚宴", hint: "去草坪尽头的「月光晚宴入口」，按 E 进入长桌区", place: "婚礼草坪" },
-  ushers: { title: "找芊一和珂满", hint: "就餐区门口领欢迎卡和 Party 流程", place: "月光晚宴" },
-  party: { title: "找主持人开场", hint: "去白幕前找主持人，听今晚怎么走", place: "月光晚宴" },
-  warmup: { title: "落座看暖场", hint: "去长桌空位坐下，观看暖场视频", place: "月光晚宴" },
-  opendance: { title: "开场舞", hint: "去台前找二姐。可以上台跳，也可以在台下看", place: "月光晚宴" },
-  partygames: { title: "Party 游戏", hint: "回主持人那里，一项一项过，最后合唱干杯", place: "月光晚宴" },
+  dinner: { title: "前往 Before Party", hint: "去草坪尽头的晚宴入口，按 E 进入 Before Party", place: "婚礼草坪" },
+  ushers: { title: "找芊一和珂满", hint: "就餐区门口领欢迎卡和 Party 流程", place: "Before Party" },
+  party: { title: "找主持人开场", hint: "去白幕前找主持人，听今晚怎么走", place: "Before Party" },
+  warmup: { title: "落座看暖场", hint: "去长桌空位坐下，观看暖场视频", place: "Before Party" },
+  opendance: { title: "开场舞", hint: "去台前找二姐。可以上台跳，也可以在台下看", place: "Before Party" },
+  partygames: { title: "Party 游戏", hint: "回主持人那里，一项一项过，最后合唱干杯", place: "Before Party" },
   night: { title: "回酒店休息", hint: "第一关结束了", place: "右岸天鹅湖" },
   breakfast: { title: "用早餐", hint: "桌上有早餐。筹码已按张数换成游戏币", place: "酒店房间" },
   day2check: { title: "领取门票与伴手礼", hint: "找阿文和王老师完成签到，领 Love Land 入场券和专属伴手礼", place: "游园会签到处" },
@@ -96,8 +96,10 @@ const quests = {
   gardenDessert: { title: "甜品区", hint: "去 05 甜品台尝一口", place: "甜品区" },
   ceremony: { title: "入座开始婚礼", hint: "举起问誓卡入座。集体问誓后，听他们对大家说的话", place: "仪式草坪" },
   vows: { title: "婚礼与告白", hint: "小钟阿旭上台。听主持流程，再听他们对大家说的话", place: "仪式草坪" },
-  lunch: { title: "圆桌午宴", hint: "仪式结束。去室内餐厅入席吃饭", place: "草坪" },
-  diningBye: { title: "告别", hint: "已经入席。去 8 号结婚桌，和小钟阿旭告别", place: "室内圆桌" },
+  lunch: { title: "婚礼午宴", hint: "仪式结束。去室内餐厅入席吃饭", place: "草坪" },
+  diningSit: { title: "入席", hint: "在圆桌找到自己的座位，按 E 坐下", place: "婚礼午宴" },
+  diningEat: { title: "开吃", hint: "已经入席。按 E 开吃", place: "婚礼午宴" },
+  diningBye: { title: "告别", hint: "已经入席。去 8 号结婚桌，和小钟阿旭告别", place: "婚礼午宴" },
   done: { title: "两关都过完了", hint: "可以重置重玩，或在场地里闲逛", place: "Love Land" },
 };
 
@@ -572,6 +574,255 @@ async function goDining() {
   refreshLawnMarkers();
   setQuestFromFlags();
   startMusic("farewell");
+}
+
+const TOUR_STOPS = [
+  { id: "airport", title: "航班舱内", hint: "拆开纸船，开始逃跑计划" },
+  { id: "resort", title: "民宿大堂", hint: "办理入住，领第一日任务" },
+  { id: "lawn", title: "婚礼草坪", hint: "破冰 Bingo、合影、钟意赌坊" },
+  { id: "banquet", title: "Before Party", hint: "暖场、开场舞、Party 游戏" },
+  { id: "hotel", title: "酒店清晨", hint: "用早餐，筹码换成游戏币" },
+  { id: "garden", title: "游园会", hint: "签到、DIY、拍照、游戏、甜品" },
+  { id: "ceremony", title: "帆船仪式", hint: "举起问誓卡，听他们说我愿意" },
+  { id: "dining", title: "婚礼午宴", hint: "入席圆桌，和小钟阿旭告别" },
+];
+
+const JUMP_UNLOCK = {
+  airport: { flags: {}, items: [] },
+  resort: {
+    flags: { letter: true, door: true, taxi: true },
+    items: ["letter"],
+  },
+  lawn: {
+    flags: { letter: true, door: true, taxi: true, checkedIn: true, kit: true },
+    items: ["letter", "bingo"],
+  },
+  banquet: {
+    flags: {
+      letter: true,
+      door: true,
+      taxi: true,
+      checkedIn: true,
+      kit: true,
+      bingoReward: true,
+      photo: true,
+      hiddenChip: true,
+      dicePlayed: true,
+    },
+    items: ["letter", "bingo", "photo", "glow", "spray"],
+  },
+  hotel: {
+    flags: {
+      letter: true,
+      door: true,
+      taxi: true,
+      checkedIn: true,
+      kit: true,
+      bingoReward: true,
+      photo: true,
+      hiddenChip: true,
+      dicePlayed: true,
+      seated: true,
+      partyBriefed: true,
+      warmupSeen: true,
+      danceDone: true,
+      partyDone: true,
+    },
+    items: ["letter", "bingo", "photo", "glow", "spray", "welcome", "partyflow"],
+  },
+  garden: {
+    flags: {
+      letter: true,
+      door: true,
+      taxi: true,
+      checkedIn: true,
+      kit: true,
+      bingoReward: true,
+      photo: true,
+      hiddenChip: true,
+      dicePlayed: true,
+      seated: true,
+      partyBriefed: true,
+      warmupSeen: true,
+      danceDone: true,
+      partyDone: true,
+      breakfast: true,
+      convertedChips: true,
+    },
+    items: ["letter", "bingo", "photo", "glow", "spray", "welcome", "partyflow"],
+  },
+  ceremony: {
+    flags: {
+      letter: true,
+      door: true,
+      taxi: true,
+      checkedIn: true,
+      kit: true,
+      bingoReward: true,
+      photo: true,
+      hiddenChip: true,
+      dicePlayed: true,
+      seated: true,
+      partyBriefed: true,
+      warmupSeen: true,
+      danceDone: true,
+      partyDone: true,
+      breakfast: true,
+      day2Checkin: true,
+      booth: true,
+      prized: true,
+      vowCard: true,
+      convertedChips: true,
+    },
+    items: ["letter", "bingo", "photo", "glow", "spray", "welcome", "partyflow", "pass", "ticket", "gift", "vowcard"],
+    garden: ["beads", "ring"],
+  },
+  dining: {
+    flags: {
+      letter: true,
+      door: true,
+      taxi: true,
+      checkedIn: true,
+      kit: true,
+      bingoReward: true,
+      photo: true,
+      hiddenChip: true,
+      dicePlayed: true,
+      seated: true,
+      partyBriefed: true,
+      warmupSeen: true,
+      danceDone: true,
+      partyDone: true,
+      breakfast: true,
+      day2Checkin: true,
+      booth: true,
+      prized: true,
+      vowCard: true,
+      satCeremony: true,
+      vows: true,
+      convertedChips: true,
+    },
+    items: ["letter", "bingo", "photo", "glow", "spray", "welcome", "partyflow", "pass", "ticket", "gift", "vowcard"],
+    garden: ["beads", "ring"],
+  },
+};
+
+function showCornerTools(on) {
+  const el = document.getElementById("corner-tools");
+  if (el) el.hidden = !on;
+}
+
+function closeTour() {
+  const tour = document.getElementById("tour");
+  if (tour) tour.hidden = true;
+}
+
+const PROGRESS_FLAGS = [
+  "letter",
+  "door",
+  "taxi",
+  "checkedIn",
+  "kit",
+  "bingoReward",
+  "photo",
+  "hiddenChip",
+  "dicePlayed",
+  "seated",
+  "partyBriefed",
+  "warmupSeen",
+  "danceDone",
+  "dancedOnStage",
+  "partyDone",
+  "breakfast",
+  "day2Checkin",
+  "booth",
+  "dessert",
+  "prized",
+  "vowCard",
+  "satCeremony",
+  "vows",
+  "satDining",
+  "ateLunch",
+  "lunch",
+  "convertedChips",
+];
+
+function applyJumpUnlock(id) {
+  const spec = JUMP_UNLOCK[id];
+  if (!spec) return;
+  PROGRESS_FLAGS.forEach((k) => {
+    flags[k] = false;
+  });
+  Object.assign(flags, spec.flags);
+  Object.keys(gardenDone).forEach((k) => delete gardenDone[k]);
+  (spec.garden || []).forEach((k) => {
+    gardenDone[k] = true;
+  });
+  inventory.length = 0;
+  (spec.items || []).forEach(grantItem);
+  if (["airport", "resort", "lawn", "banquet"].includes(id)) {
+    partyIndex = 0;
+    partyPhase = "idle";
+    warmupReady = false;
+    dancing = false;
+    danceCam = false;
+    danceHold = 0;
+  }
+  refreshMoney();
+  renderBag();
+}
+
+async function jumpToStop(id) {
+  if (!JUMP_UNLOCK[id]) return;
+  closeTour();
+  document.getElementById("bag").hidden = true;
+  document.getElementById("night-overlay").hidden = true;
+  document.getElementById("end-overlay").hidden = true;
+  document.getElementById("title-overlay").classList.add("hide");
+  talkEl.hidden = true;
+  started = true;
+  showCornerTools(true);
+  applyJumpUnlock(id);
+  if (id === "airport") {
+    await fade();
+    await goAirport();
+    return;
+  }
+  if (id === "resort" || id === "lawn") {
+    await goResort();
+    if (id === "lawn") {
+      const p = world.lawnSpawn;
+      if (p) player.position.copy(p);
+      else player.position.set(0, 0, -16.5);
+    }
+    return;
+  }
+  if (id === "banquet") {
+    await goBanquet();
+    return;
+  }
+  if (id === "hotel") {
+    await goHotel();
+    return;
+  }
+  if (id === "garden" || id === "ceremony") {
+    await goGarden();
+    if (id === "ceremony" && world.ceremonySpawn) player.position.copy(world.ceremonySpawn);
+    return;
+  }
+  if (id === "dining") await goDining();
+}
+
+function renderTourList() {
+  const box = document.getElementById("tour-list");
+  if (!box) return;
+  box.innerHTML = TOUR_STOPS.map(
+    (s) =>
+      `<button type="button" class="tour-item" data-stop="${s.id}"><b>${s.title}</b><small>${s.hint}</small></button>`
+  ).join("");
+  box.querySelectorAll("[data-stop]").forEach((b) => {
+    b.onclick = () => jumpToStop(b.dataset.stop);
+  });
 }
 
 function openBagDoc(title, html) {
@@ -1427,6 +1678,10 @@ function dismissOpenView() {
     document.getElementById("bag").hidden = true;
     return true;
   }
+  if (!document.getElementById("tour").hidden) {
+    closeTour();
+    return true;
+  }
   if (!document.getElementById("party-overlay").hidden) {
     stopWarmupVideo();
     if (partyPhase === "warmup") partyPhase = "idle";
@@ -1476,77 +1731,14 @@ talkNext.onclick = advanceTalk;
 document.getElementById("btn-start").onclick = async () => {
   document.getElementById("title-overlay").classList.add("hide");
   started = true;
+  showCornerTools(true);
   const jump = new URLSearchParams(location.search).get("jump");
-  if (jump === "garden") {
-    Object.assign(flags, {
-      letter: true,
-      door: true,
-      taxi: true,
-      checkedIn: true,
-      kit: true,
-      bingoReward: true,
-      photo: true,
-      hiddenChip: true,
-      dicePlayed: true,
-      seated: true,
-      partyDone: true,
-      breakfast: true,
-    });
-    await goGarden();
-    const g = new URLSearchParams(location.search).get("g");
-    if (g) openMini(g);
-    return;
-  }
-  if (jump === "resort" || jump === "lawn") {
-    Object.assign(flags, {
-      letter: true,
-      door: true,
-      taxi: true,
-      checkedIn: true,
-      kit: true,
-    });
-    grantItem("bingo");
-    await goResort();
-    player.position.set(0, 0, -16.5);
-    return;
-  }
-  if (jump === "banquet") {
-    Object.assign(flags, {
-      letter: true,
-      door: true,
-      taxi: true,
-      checkedIn: true,
-      kit: true,
-      bingoReward: true,
-      photo: true,
-      hiddenChip: true,
-      dicePlayed: true,
-    });
-    await goBanquet();
-    return;
-  }
-  if (jump === "dining") {
-    Object.assign(flags, {
-      letter: true,
-      door: true,
-      taxi: true,
-      checkedIn: true,
-      kit: true,
-      bingoReward: true,
-      photo: true,
-      hiddenChip: true,
-      dicePlayed: true,
-      seated: true,
-      partyDone: true,
-      breakfast: true,
-      day2Checkin: true,
-      booth: true,
-      prized: true,
-      vowCard: true,
-      satCeremony: true,
-      vows: true,
-    });
-    await goDining();
+  if (JUMP_UNLOCK[jump]) {
+    await jumpToStop(jump);
+    if (jump === "garden") {
+      const g = new URLSearchParams(location.search).get("g");
+      if (g) openMini(g);
+    }
     return;
   }
   await goAirport();
@@ -1598,6 +1790,8 @@ document.getElementById("btn-reset").onclick = () => {
   renderBag();
   document.getElementById("title-overlay").classList.remove("hide");
   started = false;
+  closeTour();
+  showCornerTools(false);
   lockedMove = false;
   riding = false;
   uiOpen = false;
@@ -1608,11 +1802,19 @@ document.getElementById("btn-reset").onclick = () => {
 document.getElementById("btn-bag").onclick = () => {
   const bag = document.getElementById("bag");
   bag.hidden = !bag.hidden;
+  if (!bag.hidden) closeTour();
   renderBag();
 };
 document.getElementById("bag-close").onclick = () => {
   document.getElementById("bag").hidden = true;
 };
+document.getElementById("btn-tour").onclick = () => {
+  const tour = document.getElementById("tour");
+  const open = tour.hidden;
+  tour.hidden = !open;
+  if (open) document.getElementById("bag").hidden = true;
+};
+document.getElementById("tour-close").onclick = closeTour;
 document.getElementById("bingo-fill").onclick = fillAllBingo;
 document.getElementById("bingo-save").onclick = closeBingo;
 document.getElementById("bingo-close").onclick = closeBingo;
@@ -1685,8 +1887,8 @@ function setupTouch() {
     const hint = document.getElementById("keys-hint");
     if (hint) {
       hint.textContent = touch
-        ? "左摇杆走路 · 滑动屏幕转视角 · 点「互动」· 背包"
-        : "WASD 走路 · 按住鼠标拖拽视角 · E 互动 · 右下角背包";
+        ? "左摇杆走路 · 滑动屏幕转视角 · 点「互动」· 背包与导览"
+        : "WASD 走路 · 按住鼠标拖拽视角 · E 互动 · 右下角背包与导览";
     }
   };
   sync();
@@ -1879,6 +2081,7 @@ function tick() {
 tick();
 refreshMoney();
 renderBag();
+renderTourList();
 
 window.__ll = {
   keys,
@@ -1901,4 +2104,5 @@ window.__ll = {
   goGarden,
   goDining,
   goResort,
+  jumpToStop,
 };

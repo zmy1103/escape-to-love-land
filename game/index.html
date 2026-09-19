@@ -31,7 +31,7 @@
       href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;1,600&family=Noto+Serif+SC:wght@400;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="css/style.css?v=vol1" />
+    <link rel="stylesheet" href="css/style.css?v=tour1" />
     <script type="importmap">
       {
         "imports": {
@@ -66,7 +66,16 @@
       </div>
       <button type="button" id="btn-act">互动</button>
     </div>
-    <button type="button" id="btn-bag">🎒 背包</button>
+    <div id="corner-tools" hidden>
+      <button type="button" id="btn-tour">🗺️ 导览</button>
+      <button type="button" id="btn-bag">🎒 背包</button>
+    </div>
+    <div id="tour" hidden>
+      <h3>全局导览</h3>
+      <p class="muted">跳到大场景，并从这里继续玩。</p>
+      <div id="tour-list"></div>
+      <button type="button" class="ghost" id="tour-close">关上</button>
+    </div>
     <div id="bag" hidden>
       <h3>来访道具</h3>
       <div id="bag-list"></div>
@@ -132,7 +141,7 @@
       <p class="kicker">The Escape Plan to Love</p>
       <h1>逃向 Love Land</h1>
       <p>纸船信件 · 下飞机 · 出租车 · 入住 · 破冰 Bingo · 钟意猜大小</p>
-      <p class="keys" id="keys-hint">WASD 走路 · 按住鼠标拖拽视角 · E 互动 · 右下角背包</p>
+      <p class="keys" id="keys-hint">WASD 走路 · 按住鼠标拖拽视角 · E 互动 · 右下角背包与导览</p>
       <button type="button" id="btn-start">从飞机上醒来</button>
     </div>
     <div id="party-overlay" hidden>
@@ -185,6 +194,6 @@
     </div>
     <div id="fade"></div>
     <script src="js/data.js?v=desk1"></script>
-    <script type="module" src="js/main.js?v=desk1"></script>
+    <script type="module" src="js/main.js?v=tour2"></script>
   </body>
 </html>
