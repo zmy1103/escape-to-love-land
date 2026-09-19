@@ -9,7 +9,7 @@ import {
   createDiningHall,
   createKid,
   blocked,
-} from "./worlds.js?v=tables1";
+} from "./worlds.js?v=names1";
 import { openMini as runMini, stopMini, openBoothStudio, paintPolaroid } from "./minigames.js?v=replay1";
 
 const D = () => window.GAME_DATA;
@@ -75,10 +75,10 @@ const quests = {
   redeem: { title: "换取 50 筹码", hint: "Bingo 已写满，回去找阿文和王老师", place: "婚礼草坪" },
   lawnTasks: {
     title: "合影与寻宝",
-    hint: "去草坪右侧、钟意赌坊旁边找阿摄阿录（跟着高高的金色光标和「摄影摄像」牌子），再去左侧椅子下面找回散落筹码",
+    hint: "去草坪右侧、钟老板赌坊旁边找阿摄阿录（跟着高高的金色光标和「摄影摄像」牌子），再去左侧椅子下面找回散落筹码",
     place: "婚礼草坪",
   },
-  dice: { title: "去猜大小", hint: "去钟意赌坊押一轮即可。有筹码可以一直赌，直到口袋空了", place: "婚礼草坪" },
+  dice: { title: "去猜大小", hint: "去钟老板赌坊押一轮即可。有筹码可以一直赌，直到口袋空了", place: "婚礼草坪" },
   dinner: { title: "前往 Before Party", hint: "去草坪尽头的晚宴入口，按 E 进入 Before Party", place: "婚礼草坪" },
   ushers: { title: "找芊一和珂满", hint: "就餐区门口领欢迎卡和 Party 流程", place: "Before Party" },
   party: { title: "找主持人开场", hint: "去白幕前找主持人，听今晚怎么走", place: "Before Party" },
@@ -226,9 +226,9 @@ function lawnTaskHint() {
     const photo = world?.name === "resort" ? world.interactives.find((i) => i.id === "photo") : null;
     const dir = photo ? `——${facingHint(photo.x, photo.z)}` : "";
     if (flags.hiddenChip) {
-      return `去草坪右侧、钟意赌坊旁边找阿摄阿录拍一张。跟着高高的金色光标和「摄影摄像」牌子${dir}`;
+      return `去草坪右侧、钟老板赌坊旁边找阿摄阿录拍一张。跟着高高的金色光标和「摄影摄像」牌子${dir}`;
     }
-    return `先去草坪右侧、钟意赌坊旁边找阿摄阿录拍一张。跟着高高的金色光标和「摄影摄像」牌子${dir}`;
+    return `先去草坪右侧、钟老板赌坊旁边找阿摄阿录拍一张。跟着高高的金色光标和「摄影摄像」牌子${dir}`;
   }
   return "合影好了。去草坪左侧那几把木椅下面，找回散落的筹码。";
 }
@@ -598,7 +598,7 @@ async function goDining() {
 const TOUR_STOPS = [
   { id: "airport", title: "航班舱内", hint: "拆开纸船，开始逃跑计划" },
   { id: "resort", title: "民宿大堂", hint: "办理入住，领第一日任务" },
-  { id: "lawn", title: "婚礼草坪", hint: "破冰 Bingo、合影、钟意赌坊" },
+  { id: "lawn", title: "婚礼草坪", hint: "破冰 Bingo、合影、钟老板赌坊" },
   { id: "banquet", title: "Before Party", hint: "暖场、开场舞、Party 游戏" },
   { id: "hotel", title: "酒店清晨", hint: "用早餐，筹码换成游戏币" },
   { id: "garden", title: "游园会", hint: "签到、DIY、拍照、游戏、甜品" },

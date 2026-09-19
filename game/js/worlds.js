@@ -939,7 +939,7 @@ export function createResort(texVenue) {
   scene.add(zhongyi);
   addBox(scene, mat(PAL.wood), 1.4, 0.7, 1.4, 8.3, 0.35, lawnZ + 8, colliders);
   addBox(scene, mat(0xf2ead2), 0.7, 0.06, 0.7, 8.3, 0.74, lawnZ + 8, null);
-  const gambleSign = makeSign("钟意赌坊 · 猜大小", 1.8, 0.48);
+  const gambleSign = makeSign("钟老板赌坊", 1.8, 0.48);
   gambleSign.position.set(8.3, 1.35, lawnZ + 7.35);
   scene.add(gambleSign);
 
@@ -998,7 +998,7 @@ export function createResort(texVenue) {
     x: 8.5,
     z: lawnZ + 8,
     r: 1.8,
-    label: "按 E 找钟意猜大小",
+    label: "按 E 进钟老板赌坊",
     marker: zyMark,
   });
 
