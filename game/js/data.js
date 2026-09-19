@@ -171,14 +171,14 @@ window.GAME_DATA = {
     },
     {
       id: "bei",
-      name: "小北",
+      name: "小玉",
       shirt: 0xe8d9a8,
       hair: 0x3a2a20,
-      hello: "大学室友。我家猫叫布丁，我是专职铲屎官。",
+      hello: "大学室友。家里养了三只猫：小黑、米妮、小麦，我是专职铲屎官。",
       tags: ["dorm", "cat"],
       questions: [
         { ask: "你和新郎新娘住过同一间寝室？", bingo: "dorm", yes: "住过。打呼声我可以出公证。" },
-        { ask: "你养猫吗？", bingo: "cat", yes: "养。我就是小猫咪铲屎官本人。" },
+        { ask: "你养猫吗？", bingo: "cat", yes: "养。小黑、米妮、小麦，三只都归我铲屎。" },
       ],
     },
     {
