@@ -9,7 +9,7 @@ import {
   createDiningHall,
   createKid,
   blocked,
-} from "./worlds.js?v=shop1";
+} from "./worlds.js?v=dine1";
 import { openMini as runMini, stopMini, openBoothStudio, paintPolaroid } from "./minigames.js?v=replay1";
 
 const D = () => window.GAME_DATA;
@@ -318,6 +318,10 @@ function fillBingo(cellId, name) {
   return true;
 }
 
+function guestBingoName(g) {
+  return (g?.bingoAs || g?.name || "").trim();
+}
+
 function refreshAwenMarker() {
   if (!world || world.name !== "resort") return;
   const awen = world.interactives.find((i) => i.id === "awen");
@@ -542,6 +546,7 @@ async function goBanquet() {
 }
 
 async function goHotel() {
+  preloadDiningAssets();
   await fade();
   if (!flags.convertedChips) {
     coins += chips[50] + chips[100] + chips[500] + chips[1000];
@@ -556,6 +561,7 @@ async function goHotel() {
 }
 
 async function goGarden() {
+  preloadDiningAssets();
   await fade();
   mount(createGarden(), 0xd5ddc6);
   refreshLawnMarkers();
@@ -563,23 +569,57 @@ async function goGarden() {
   ensureDay2Music();
 }
 
+let diningAssetsP = null;
+
+function shrinkTex(tex, maxEdge = 1024) {
+  if (!tex?.image) return tex;
+  const img = tex.image;
+  const w = img.width || 0;
+  const h = img.height || 0;
+  if (!w || !h) return tex;
+  const scale = Math.min(1, maxEdge / Math.max(w, h));
+  if (scale < 1) {
+    const c = document.createElement("canvas");
+    c.width = Math.max(1, Math.round(w * scale));
+    c.height = Math.max(1, Math.round(h * scale));
+    c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+    tex.image = c;
+  }
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.generateMipmaps = true;
+  tex.minFilter = THREE.LinearMipmapLinearFilter;
+  tex.needsUpdate = true;
+  return tex;
+}
+
+function loadDiningTex(url) {
+  return new Promise((resolve) => {
+    new THREE.TextureLoader().load(
+      url,
+      (tex) => resolve(tex),
+      undefined,
+      () => resolve(null)
+    );
+  });
+}
+
+function preloadDiningAssets() {
+  if (!diningAssetsP) {
+    diningAssetsP = Promise.all([loadDiningTex("assets/dining-room.jpg"), loadDiningTex("assets/seats.png")]).then(
+      ([room, seats]) => ({
+        room: room ? shrinkTex(room, 1024) : null,
+        seats: seats ? shrinkTex(seats, 1024) : null,
+      })
+    );
+  }
+  return diningAssetsP;
+}
+
 async function goDining() {
   startMusic("farewell");
+  const ready = preloadDiningAssets();
   await fade();
-  const loader = new THREE.TextureLoader();
-  const load = (url) =>
-    new Promise((resolve) => {
-      loader.load(
-        url,
-        (tex) => {
-          tex.colorSpace = THREE.SRGBColorSpace;
-          resolve(tex);
-        },
-        undefined,
-        () => resolve(null)
-      );
-    });
-  const [room, seats] = await Promise.all([load("assets/dining-room.jpg"), load("assets/seats.png")]);
+  const { room, seats } = await ready;
   mount(createDiningHall(room, seats), 0xefe4d2);
   grantItem("seatmap");
   flags.satDining = true;
@@ -954,9 +994,9 @@ function pickGuestQ(q) {
   let extra = q.yes;
   let filled = false;
   if (q.bingo && flags.kit) {
-    filled = fillBingo(q.bingo, g.name);
+    filled = fillBingo(q.bingo, guestBingoName(g));
     extra += filled
-      ? `（已把「${g.name}」写进 Bingo：${D().bingoCells.find((c) => c.id === q.bingo).prompt}）`
+      ? `（已把「${guestBingoName(g)}」写进 Bingo：${D().bingoCells.find((c) => c.id === q.bingo).prompt}）`
       : "（这一格已经写过了。）";
   } else if (q.bingo && !flags.kit) {
     extra += "（先去阿文那儿领 Bingo Card，才能写名字。）";
@@ -1028,11 +1068,12 @@ function openLetter(grant = true) {
 
 function fillAllBingo() {
   D().guests.forEach((g) => {
+    const written = guestBingoName(g);
     (g.questions || []).forEach((q) => {
-      if (q.bingo) bingo[q.bingo] = g.name;
+      if (q.bingo) bingo[q.bingo] = written;
     });
     (g.tags || []).forEach((tag) => {
-      if (!bingo[tag]) bingo[tag] = g.name;
+      if (!bingo[tag]) bingo[tag] = written;
     });
   });
   document.querySelectorAll("#bingo-grid input").forEach((inp) => {
@@ -1046,7 +1087,7 @@ function openBingo() {
   grid.innerHTML = D()
     .bingoCells.map(
       (c) =>
-        `<input data-cell="${c.id}" maxlength="8" size="6" placeholder="名字" value="${bingo[c.id] || ""}" />`
+        `<input data-cell="${c.id}" maxlength="10" size="8" placeholder="名字" value="${bingo[c.id] || ""}" />`
     )
     .join("");
   document.getElementById("bingo-progress").textContent = `${bingoCount()}/16 格`;
@@ -1771,6 +1812,7 @@ document.getElementById("btn-start").onclick = async () => {
   document.getElementById("title-overlay").classList.add("hide");
   started = true;
   showCornerTools(true);
+  preloadDiningAssets();
   const jump = new URLSearchParams(location.search).get("jump");
   if (JUMP_UNLOCK[jump]) {
     await jumpToStop(jump);

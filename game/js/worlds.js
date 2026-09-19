@@ -1024,16 +1024,16 @@ export function createResort(texVenue) {
     { at: [-11.5, lawnZ + 7], ids: ["zhou", "hua", "lin"] },
     { at: [11.2, lawnZ + 6], ids: ["chen", "wu", "le"] },
     { at: [-12.5, lawnZ - 4], ids: ["qi", "bei", "wumiao", "tangtang"] },
-    { at: [11.5, lawnZ - 3], ids: ["he", "xiaozhou", "min"] },
-    { at: [-8.5, lawnZ + 1], ids: ["pai", "lv"] },
+    { at: [-8.5, lawnZ + 1], ids: ["pai", "lv", "xiaoqi"] },
+    { at: [11.5, lawnZ - 3], ids: ["he", "xiaozhou", "min", "yangzi"] },
   ];
   const guestMap = Object.fromEntries((window.GAME_DATA?.guests || []).map((g) => [g.id, g]));
   groups.forEach((group) => {
     group.ids.forEach((gid, i) => {
       const info = guestMap[gid] || { shirt: 0x888888, hair: 0x222222 };
       const k = createKid({ shirt: info.shirt, hair: info.hair, name: info.name || "" });
-      const ox = (i - 1) * 0.85;
-      const oz = (i % 2) * 0.45;
+      const ox = (i - (group.ids.length - 1) / 2) * 0.82;
+      const oz = (i % 2) * 0.42;
       k.position.set(group.at[0] + ox, 0, group.at[1] + oz);
       k.rotation.y = Math.PI * (0.15 * i + 0.4);
       scene.add(k);
@@ -1664,18 +1664,10 @@ export function createDiningHall(texRoom, texSeats) {
   const interactives = [];
   scene.add(new THREE.HemisphereLight(0xfff4e4, 0xd4c6ae, 1.25));
   scene.add(new THREE.AmbientLight(0xffe9cc, 0.85));
-  const key = new THREE.DirectionalLight(0xfff7ea, 1.2);
+  const key = new THREE.DirectionalLight(0xfff7ea, 1.05);
   key.position.set(8, 16, 7);
-  key.castShadow = true;
-  key.shadow.mapSize.set(2048, 2048);
-  key.shadow.camera.near = 1;
-  key.shadow.camera.far = 50;
-  key.shadow.camera.left = -18;
-  key.shadow.camera.right = 18;
-  key.shadow.camera.top = 18;
-  key.shadow.camera.bottom = -18;
   scene.add(key);
-  const fill = new THREE.DirectionalLight(0xfffaf2, 0.55);
+  const fill = new THREE.DirectionalLight(0xfffaf2, 0.5);
   fill.position.set(-10, 12, 4);
   scene.add(fill);
 
@@ -1727,6 +1719,18 @@ export function createDiningHall(texRoom, texSeats) {
   ];
   const guestColors = [0xb56b6b, 0x6b7eb5, 0xc4a35a, 0x4f8f7b, 0xe2b3c9, 0x5d6f8a, 0xcfc6b8];
 
+  function seatedGuest(x, z, yaw, shirt) {
+    const g = new THREE.Group();
+    const body = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.3, 0.2), mat(shirt));
+    body.position.y = 0.7;
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 6), mat(PAL.skin));
+    head.position.y = 0.96;
+    g.add(body, head);
+    g.position.set(x, 0, z);
+    g.rotation.y = yaw;
+    scene.add(g);
+  }
+
   function coveredChair(x, z, yaw) {
     const g = new THREE.Group();
     addBox(g, mat(0xf4f1ea), 0.42, 0.08, 0.42, 0, 0.46, 0);
@@ -1737,20 +1741,17 @@ export function createDiningHall(texRoom, texSeats) {
     addBox(g, mat(0xd8d0c4), 0.06, 0.46, 0.06, 0.16, 0.23, 0.16);
     g.position.set(x, 0, z);
     g.rotation.y = yaw;
-    g.traverse((o) => {
-      if (o.isMesh) o.castShadow = true;
-    });
     scene.add(g);
   }
 
   tables.forEach((t) => {
-    const base = new THREE.Mesh(new THREE.CylinderGeometry(0.95, 1.02, 0.7, 20), mat(0x8a7358));
+    const base = new THREE.Mesh(new THREE.CylinderGeometry(0.95, 1.02, 0.7, 12), mat(0x8a7358));
     base.position.set(t.x, 0.35, t.z);
     base.castShadow = true;
     scene.add(base);
     colliders.push({ minx: t.x - 1.05, maxx: t.x + 1.05, minz: t.z - 1.05, maxz: t.z + 1.05 });
     const cloth = new THREE.Mesh(
-      new THREE.CylinderGeometry(1.22, 1.22, 0.05, 24),
+      new THREE.CylinderGeometry(1.22, 1.22, 0.05, 16),
       mat(0xf4e6c4, { roughness: 0.42, metalness: 0.12 })
     );
     cloth.position.set(t.x, 0.74, t.z);
@@ -1782,13 +1783,7 @@ export function createDiningHall(texRoom, texSeats) {
       const yaw = Math.atan2(t.x - cx, t.z - cz);
       coveredChair(cx, cz, yaw);
       if (t.n === 8 && (i === 4 || i === 5)) continue;
-      const g = createKid({
-        shirt: guestColors[(t.n * 3 + i) % guestColors.length],
-        hair: 0x2a2018,
-      });
-      g.position.set(cx, 0, cz);
-      g.rotation.y = yaw;
-      scene.add(g);
+      seatedGuest(cx, cz, yaw, guestColors[(t.n * 3 + i) % guestColors.length]);
     }
     if (t.sit) {
       const a = 0;
@@ -1814,9 +1809,6 @@ export function createDiningHall(texRoom, texSeats) {
     lamp.position.set(t.x, 3.35, t.z);
     scene.add(lamp);
     addBox(scene, mat(0xc4a35a, { metalness: 0.5, roughness: 0.3 }), 0.03, 0.85, 0.03, t.x, 3.85, t.z, null, false);
-    const glow = new THREE.PointLight(0xffe1a8, 0.85, 7.5, 2);
-    glow.position.set(t.x, 3.2, t.z);
-    scene.add(glow);
   });
 
   const zhong = createKid({ shirt: 0x2c333c, hair: 0x1a1a1a, name: "小钟" });
