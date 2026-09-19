@@ -59,6 +59,7 @@ let dancing = false;
 let audioCtx = null;
 let audioNodes = [];
 let musicEl = null;
+let musicTrack = null;
 const gardenDone = {};
 
 const quests = {
@@ -447,12 +448,14 @@ async function goAirport() {
   mount(createAirport(), 0xa8bdd0);
   restoreAirport();
   setQuestFromFlags();
+  ensureDay1Music();
 }
 
 async function goRide() {
   await fade();
   mount(createRide(), 0xc5d4b8);
   setQuestFromFlags();
+  ensureDay1Music();
 }
 
 async function goResort() {
@@ -466,6 +469,7 @@ async function goResort() {
   refreshAwenMarker();
   refreshLawnMarkers();
   setQuestFromFlags();
+  ensureDay1Music();
 }
 
 async function goBanquet() {
@@ -473,11 +477,11 @@ async function goBanquet() {
   mount(createBanquet(), 0x1a2230);
   refreshLawnMarkers();
   setQuestFromFlags();
+  ensureDay1Music();
 }
 
 async function goHotel() {
   await fade();
-  stopMusic();
   if (!flags.convertedChips) {
     coins += chips[50] + chips[100] + chips[500] + chips[1000];
     chips[50] = chips[100] = chips[500] = chips[1000] = 0;
@@ -487,6 +491,7 @@ async function goHotel() {
   mount(createHotelMorning(), 0xefe8d8);
   refreshLawnMarkers();
   setQuestFromFlags();
+  ensureDay2Music();
 }
 
 async function goGarden() {
@@ -494,6 +499,7 @@ async function goGarden() {
   mount(createGarden(), 0xd5ddc6);
   refreshLawnMarkers();
   setQuestFromFlags();
+  ensureDay2Music();
 }
 
 async function goDining() {
@@ -829,15 +835,27 @@ function burstFireworks() {
   }, 1000);
 }
 
-function startMusic(track = "dance") {
+function startMusic(track = "day1") {
+  if (musicTrack === track && musicEl) {
+    musicEl.play().catch(() => {});
+    return;
+  }
   stopMusic();
-  const files = { cheers: "cheers.mp3", dance: "dance.mp3", farewell: "cixing.mp3" };
-  const file = files[track] || "dance.mp3";
-  const skip = track === "cheers" || track === "dance" ? 3 : 0;
+  const files = {
+    day1: "brightest-star.mp3",
+    day2: "chengaiying.mp3",
+    cheers: "cheers.mp3",
+    dance: "brightest-star.mp3",
+    farewell: "cixing.mp3",
+  };
+  const file = files[track] || "chengaiying.mp3";
+  const skip = track === "cheers" ? 3 : 0;
+  musicTrack = track;
   try {
     musicEl = new Audio(`assets/${file}`);
     musicEl.loop = true;
-    musicEl.volume = track === "farewell" ? 0.48 : 0.55;
+    musicEl.volume =
+      track === "farewell" ? 0.48 : track === "day1" || track === "day2" || track === "dance" ? 0.126 : 0.55;
     const jumpIn = () => {
       if (skip && musicEl && musicEl.currentTime < skip) musicEl.currentTime = skip;
     };
@@ -849,7 +867,18 @@ function startMusic(track = "dance") {
   } catch (_) {}
 }
 
+function ensureDay1Music() {
+  if (musicTrack === "cheers") return;
+  startMusic("day1");
+}
+
+function ensureDay2Music() {
+  if (musicTrack === "farewell") return;
+  startMusic("day2");
+}
+
 function stopMusic() {
+  musicTrack = null;
   if (musicEl) {
     try {
       musicEl.pause();
@@ -920,8 +949,8 @@ function joinDance(onStage) {
   flags.danceDone = true;
   flags.dancedOnStage = onStage;
   if (world) world.stageDancing = true;
+  ensureDay1Music();
   dancing = true;
-  startMusic("dance");
   if (onStage) {
     player.position.set(0.75, 0, -11.1);
     player.rotation.y = 0;
@@ -936,7 +965,6 @@ function joinDance(onStage) {
   talkI = 0;
   talkChoices = null;
   talkDone = () => {
-    stopMusic();
     setQuestFromFlags();
   };
   lockedMove = true;
@@ -975,7 +1003,7 @@ function showPartyAct() {
     startMusic("cheers");
   } else {
     stage.textContent = act.title;
-    stopMusic();
+    ensureDay1Music();
   }
   document.getElementById("party-next").textContent =
     partyIndex === acts.length - 1 ? "合唱结束，回酒店" : "下一项";
