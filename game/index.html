@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="theme-color" content="#c5ceb5" />
+    <title>Escape to Love Land · 3D</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;1,600&family=Noto+Serif+SC:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/style.css?v=dine1" />
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js"
+        }
+      }
+    </script>
+  </head>
+  <body class="world3d">
+    <canvas id="view"></canvas>
+    <div id="hud">
+      <div class="hud-brand">
+        <strong>Love Land</strong>
+        <em id="place">飞往成都</em>
+      </div>
+      <div class="hud-quest">
+        <span>当前任务</span>
+        <b id="quest-title">拆开纸船</b>
+        <small id="quest-hint">座位上有一艘纸船，按 E 拆开</small>
+      </div>
+      <div class="hud-money" id="hud-money">
+        <span title="筹码">🎰 <b id="chip-value">0</b></span>
+        <span title="游戏币">🪙 <b id="coin-value">0</b></span>
+        <button type="button" id="btn-help" class="qmark" title="筹码和游戏币的区别">?</button>
+        <button type="button" id="btn-reset">重置</button>
+      </div>
+    </div>
+    <div id="prompt" hidden>按 E 互动</div>
+    <div id="touch-ui" hidden>
+      <div id="stick" aria-label="移动摇杆">
+        <div id="stick-knob"></div>
+      </div>
+      <button type="button" id="btn-act">互动</button>
+    </div>
+    <button type="button" id="btn-bag">🎒 背包</button>
+    <div id="bag" hidden>
+      <h3>来访道具</h3>
+      <div id="bag-list"></div>
+      <button type="button" class="ghost" id="bag-close">关上</button>
+    </div>
+    <div id="talk" hidden>
+      <div class="talk-inner">
+        <b id="talk-who"></b>
+        <p id="talk-text"></p>
+        <div id="talk-choices"></div>
+        <button type="button" id="talk-next">继续</button>
+      </div>
+    </div>
+    <div id="letter-overlay" hidden>
+      <article class="letter">
+        <p class="letter-hint" id="letter-hint"></p>
+        <h2 id="letter-greet"></h2>
+        <div id="letter-body"></div>
+        <footer id="letter-sign"></footer>
+      </article>
+      <button type="button" id="letter-ok">收进背包，去下飞机</button>
+    </div>
+    <div id="bingo-overlay" hidden>
+      <div class="bingo-wrap">
+        <p class="bingo-bar">
+          <span id="bingo-progress">0/16</span>
+          <small class="bingo-tip">交谈后会自动写入。快速体验：点右下角「一键全填并保存」。</small>
+        </p>
+        <div class="bingo-sheet">
+          <img src="assets/bingocard.jpeg" alt="Bingo card" />
+          <div class="bingo-grid" id="bingo-grid"></div>
+          <div class="bingo-foot">
+            <button type="button" id="bingo-fill">一键全填并保存</button>
+            <button type="button" id="bingo-save">保存</button>
+            <button type="button" id="bingo-close">关闭</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="dice-overlay" hidden>
+      <div class="dice-panel">
+        <h3>钟意的赌坊 · 猜大小</h3>
+        <p>一颗骰子：1–3 为小，4–6 为大。押中 1:1 再给你一枚同面额筹码，押错收走。</p>
+        <p>押注面额：<span id="dice-denoms"></span></p>
+        <div class="dice-actions">
+          <button type="button" id="bet-small">押小</button>
+          <button type="button" id="bet-big">押大</button>
+        </div>
+        <div class="dice-face" id="dice-face">?</div>
+        <p id="dice-result">选面额，再押大或小。</p>
+        <button type="button" class="ghost" id="dice-close">离开赌桌</button>
+      </div>
+    </div>
+    <div id="help-overlay" hidden>
+      <div class="help-card">
+        <h3 id="help-title">筹码和游戏币</h3>
+        <div id="help-body"></div>
+        <img id="help-img" alt="筹码样式" />
+        <button type="button" id="help-close">知道了</button>
+      </div>
+    </div>
+    <div id="title-overlay">
+      <p class="kicker">The Escape Plan to Love</p>
+      <h1>逃向 Love Land</h1>
+      <p>纸船信件 · 下飞机 · 出租车 · 入住 · 破冰 Bingo · 钟意猜大小</p>
+      <p class="keys" id="keys-hint">WASD 走路 · 按住鼠标拖拽视角 · E 互动 · 右下角背包</p>
+      <button type="button" id="btn-start">从飞机上醒来</button>
+    </div>
+    <div id="party-overlay" hidden>
+      <div class="party-panel">
+        <p class="kicker" id="party-kicker">9.25 Before Party</p>
+        <h3 id="party-title"></h3>
+        <div id="party-stage"></div>
+        <p id="party-text"></p>
+        <button type="button" id="party-next">继续流程</button>
+      </div>
+    </div>
+    <div id="fireworks" hidden></div>
+    <div id="game-overlay" hidden>
+      <div class="dice-panel" id="mini-panel">
+        <h3 id="mini-title">游戏</h3>
+        <p id="mini-text"></p>
+        <div id="mini-playfield"></div>
+        <p id="mini-result"></p>
+        <button type="button" id="mini-play">参加</button>
+        <button type="button" class="ghost" id="mini-close">离开</button>
+      </div>
+    </div>
+    <div id="prize-overlay" hidden>
+      <div class="dice-panel">
+        <h3>阿文 & 王老师 · 兑奖</h3>
+        <p>一等奖 15 币 · 二等奖 10 · 三等奖 5 · 四等奖 3 · 参与奖 1</p>
+        <p>当前游戏币：<b id="prize-coins">0</b></p>
+        <div id="prize-btns" class="dice-actions"></div>
+        <button type="button" class="ghost" id="prize-close">先逛逛</button>
+      </div>
+    </div>
+    <div id="polaroid" hidden>
+      <img id="polaroid-img" alt="合影" />
+      <p>已放进背包</p>
+      <button type="button" id="polaroid-ok">收好</button>
+    </div>
+    <div id="night-overlay" hidden>
+      <p class="kicker">The Escape Plan to Love</p>
+      <h1>恭喜通关第一关</h1>
+      <p>合唱完《干杯》。你走回酒店房间。</p>
+      <p class="lede">晚安。明天 9:20，Love Land 的游园会等你。</p>
+      <button type="button" id="btn-day2">迎接第二关</button>
+    </div>
+    <div id="end-overlay" hidden>
+      <p class="kicker">Escape to Love Land</p>
+      <h1>他们结婚了</h1>
+      <p>小钟和阿旭把这句话说给了在场的每一个人。</p>
+      <p>谢谢你们飞过来。祝有爱者更爱，独立者更自由。</p>
+      <button type="button" id="btn-replay">再玩一次</button>
+    </div>
+    <div id="fade"></div>
+    <script src="js/data.js?v=sit1"></script>
+    <script type="module" src="js/main.js?v=sit1"></script>
+  </body>
+</html>
