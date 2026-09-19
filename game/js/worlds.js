@@ -890,7 +890,7 @@ export function createResort(texVenue) {
   lantern(scene, 0.85, 1.35, 3.15);
 
   const clerk = createWoman({ shirt: PAL.sage, hair: 0x4a3020, name: "接待姐姐" });
-  clerk.position.set(0.7, 0, 3.5);
+  clerk.position.set(0.55, 0, 2.05);
   clerk.rotation.y = Math.PI;
   scene.add(clerk);
 
