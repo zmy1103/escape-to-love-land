@@ -873,7 +873,7 @@ export function createResort(texVenue) {
   const groups = [
     { at: [-11.5, lawnZ + 7], ids: ["zhou", "hua", "lin"] },
     { at: [11.2, lawnZ + 6], ids: ["chen", "wu", "le"] },
-    { at: [-12.5, lawnZ - 4], ids: ["qi", "bei", "wumiao"] },
+    { at: [-12.5, lawnZ - 4], ids: ["qi", "bei", "wumiao", "tangtang"] },
     { at: [11.5, lawnZ - 3], ids: ["he", "xiaozhou", "min"] },
     { at: [-8.5, lawnZ + 1], ids: ["pai", "lv"] },
   ];
