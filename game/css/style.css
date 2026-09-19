@@ -87,8 +87,9 @@ button {
   bottom: 18px;
   z-index: 6;
   display: flex;
+  flex-direction: column;
   gap: 10px;
-  align-items: center;
+  align-items: flex-end;
 }
 #corner-tools[hidden] {
   display: none !important;
@@ -563,16 +564,16 @@ button {
     bottom: 168px;
   }
   #corner-tools {
-    right: 18px;
-    bottom: 108px;
+    right: calc(18px + env(safe-area-inset-right));
+    bottom: calc(18px + env(safe-area-inset-bottom) + 104px);
   }
   #tour,
   #bag {
     right: 12px;
     left: auto;
     width: min(300px, calc(100vw - 168px));
-    bottom: 176px;
-    max-height: calc(100dvh - 240px - env(safe-area-inset-top));
+    bottom: calc(18px + env(safe-area-inset-bottom) + 228px);
+    max-height: calc(100dvh - 300px - env(safe-area-inset-top));
   }
   .bingo-wrap {
     width: min(560px, 96vw);
@@ -669,6 +670,14 @@ button {
 body.touch #btn-start {
   padding: 14px 28px;
   font-size: 18px;
+}
+body.touch #corner-tools {
+  right: calc(18px + env(safe-area-inset-right));
+  bottom: calc(18px + env(safe-area-inset-bottom) + 104px);
+}
+body.touch #tour,
+body.touch #bag {
+  bottom: calc(18px + env(safe-area-inset-bottom) + 228px);
 }
 
 #mini-panel.mini-panel {

@@ -447,6 +447,22 @@ function clearWorld() {
   }
 }
 
+function snapFollowCam() {
+  danceCam = false;
+  dancing = false;
+  danceHold = 0;
+  camPitch = 0.18;
+  if (world?.cinematic) return;
+  const dist = 4.6;
+  const ch = 1.72;
+  camera.position.set(
+    player.position.x + Math.sin(camYaw) * dist,
+    player.position.y + ch + camPitch * 2.5,
+    player.position.z + Math.cos(camYaw) * dist
+  );
+  camera.lookAt(player.position.x, player.position.y + 1.05, player.position.z);
+}
+
 function mount(w, bg) {
   clearWorld();
   world = w;
@@ -461,6 +477,7 @@ function mount(w, bg) {
   rideT = 0;
   lockedMove = !!w.cinematic;
   player.visible = !w.cinematic;
+  snapFollowCam();
 }
 
 function restoreAirport() {
@@ -547,6 +564,7 @@ async function goGarden() {
 }
 
 async function goDining() {
+  startMusic("farewell");
   await fade();
   const loader = new THREE.TextureLoader();
   const load = (url) =>
@@ -571,6 +589,7 @@ async function goDining() {
     player.position.set(seat.x, 0, seat.z);
     player.rotation.y = Math.atan2(seat.tableX - seat.x, seat.tableZ - seat.z);
   }
+  snapFollowCam();
   refreshLawnMarkers();
   setQuestFromFlags();
   startMusic("farewell");
@@ -774,6 +793,9 @@ function applyJumpUnlock(id) {
 
 async function jumpToStop(id) {
   if (!JUMP_UNLOCK[id]) return;
+  dancing = false;
+  danceCam = false;
+  danceHold = 0;
   closeTour();
   document.getElementById("bag").hidden = true;
   document.getElementById("night-overlay").hidden = true;
@@ -794,6 +816,7 @@ async function jumpToStop(id) {
       const p = world.lawnSpawn;
       if (p) player.position.copy(p);
       else player.position.set(0, 0, -16.5);
+      snapFollowCam();
     }
     return;
   }
@@ -807,7 +830,10 @@ async function jumpToStop(id) {
   }
   if (id === "garden" || id === "ceremony") {
     await goGarden();
-    if (id === "ceremony" && world.ceremonySpawn) player.position.copy(world.ceremonySpawn);
+    if (id === "ceremony" && world.ceremonySpawn) {
+      player.position.copy(world.ceremonySpawn);
+      snapFollowCam();
+    }
     return;
   }
   if (id === "dining") await goDining();
@@ -872,7 +898,11 @@ function showTalk() {
         ? "任务更新"
       : line.who === "crowd"
         ? "全体宾客"
-        : npc?.name || guest?.name || line.who;
+        : npc
+          ? line.who === "zhong" || line.who === "xu"
+            ? `${npc.name} · ${npc.title}`
+            : npc.name
+          : guest?.name || line.who;
   talkText.textContent = line.text;
   talkChoicesEl.innerHTML = "";
   const last = talkI >= talkLines.length - 1;
@@ -1156,7 +1186,16 @@ function startMusic(track = "day1") {
       musicEl.addEventListener("loadedmetadata", jumpIn);
       musicEl.addEventListener("timeupdate", jumpIn);
     }
-    musicEl.play().then(jumpIn).catch(() => {});
+    musicEl.play().then(jumpIn).catch(() => {
+      const resume = () => {
+        if (!musicEl) return;
+        musicEl.play().then(jumpIn).catch(() => {});
+        window.removeEventListener("pointerdown", resume);
+        window.removeEventListener("keydown", resume);
+      };
+      window.addEventListener("pointerdown", resume, { once: true });
+      window.addEventListener("keydown", resume, { once: true });
+    });
   } catch (_) {}
 }
 

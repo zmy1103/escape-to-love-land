@@ -279,13 +279,13 @@ window.GAME_DATA = {
     },
     zhong: {
       name: "小钟",
-      title: "新郎",
+      title: "新娘",
       avatar: "🌙",
       note: "【待补充：个性化对白】",
     },
     xu: {
       name: "阿旭",
-      title: "新娘",
+      title: "新郎",
       avatar: "🌻",
       note: "【待补充：个性化对白】",
     },
@@ -709,7 +709,7 @@ window.GAME_DATA = {
     ],
     zhong_q_buffet: [
       { who: "zhong", text: "你终于到了。吃了吗？BBQ 和西餐都在，别空着肚子去跳舞。" },
-      { who: "player", text: "新郎官今天看起来很镇静。" },
+      { who: "player", text: "新娘今天看起来很镇静。" },
       { who: "zhong", text: "那是假象。待会《干杯》副歌我会唱，你也要来。重要的是一起大声唱。" },
       { who: "system", text: "肚子填饱了。主持人在 Party 主场等你。" },
     ],
@@ -753,7 +753,7 @@ window.GAME_DATA = {
     ],
     zhong_q_banquet: [
       { who: "zhong", text: "谢谢你飞过来。也谢谢你把这两天一路闯过来。" },
-      { who: "xu", text: "聚散有期，情谊无疆。吃饱，再把祝福留下。" },
+      { who: "xu", text: "聚散有期，情谊无限，期待我们的下次相见！" },
       { who: "player", text: "祝有爱者更爱，独立者更自由。" },
       { who: "system", text: "闯关完成。Love Land 欢迎你随时回来补全更多支线。" },
     ],
@@ -801,7 +801,7 @@ window.GAME_DATA = {
     ],
     ceremony_host: [
       { who: "host", text: "各位来宾请坐稳。11:28，Love Land 的仪式现在开始。" },
-      { who: "host", text: "有请新郎小钟、新娘阿旭。他们已经站到白帆前。" },
+      { who: "host", text: "有请新郎阿旭、新娘小钟。他们已经站到白帆前。" },
       { who: "host", text: "请把掌声给他们。向日葵还在过道两边开着。" },
       { who: "host", text: "今天不由我一个人问。请举起问誓卡，全体亲友一起问他们：愿不愿意。" },
     ],
