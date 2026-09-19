@@ -9,7 +9,7 @@ import {
   createDiningHall,
   createKid,
   blocked,
-} from "./worlds.js?v=tour1";
+} from "./worlds.js?v=tables1";
 import { openMini as runMini, stopMini, openBoothStudio, paintPolaroid } from "./minigames.js?v=replay1";
 
 const D = () => window.GAME_DATA;

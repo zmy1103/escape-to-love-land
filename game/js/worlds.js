@@ -125,9 +125,14 @@ export function makeSign(text, w = 1.4, h = 0.5) {
   ctx.lineWidth = 8;
   ctx.strokeRect(8, 8, 496, 144);
   ctx.fillStyle = "#4c5840";
-  ctx.font = `${text.length > 12 ? 34 : 46}px 'Noto Serif SC', serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
+  let size = 46;
+  ctx.font = `${size}px 'Noto Serif SC', serif`;
+  while (ctx.measureText(text).width > 460 && size > 26) {
+    size -= 2;
+    ctx.font = `${size}px 'Noto Serif SC', serif`;
+  }
   ctx.fillText(text, 256, 80);
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;
@@ -1633,15 +1638,15 @@ export function createDiningHall(texRoom, texSeats) {
   addBox(scene, mat(0x6e5a3e), 0.4, 2.6, 4.2, -11.7, 1.4, 2.2, colliders);
 
   const tables = [
-    { n: 0, title: "0 长长父父", col: 0xc47a3a, x: 0, z: -9.4, sit: false },
-    { n: 1, title: "1 长长久久", col: 0xa84a3a, x: -5.4, z: -5.1, sit: false },
-    { n: 2, title: "2 你的港湾", col: 0xd48aa0, x: 5.4, z: -5.1, sit: false },
-    { n: 3, title: "3 闪光的回忆", col: 0xc9a24a, x: -5.4, z: -0.6, sit: false },
-    { n: 4, title: "4 你的爱情", col: 0x6aa87a, x: 5.4, z: -0.6, sit: false },
-    { n: 5, title: "5 海鸥", col: 0x4a8ab8, x: -5.4, z: 3.9, sit: true },
-    { n: 6, title: "6 一万次悲伤", col: 0x5a6ab0, x: 5.4, z: 3.9, sit: false },
-    { n: 7, title: "7 最亮的星", col: 0x2a3a6a, x: -5.4, z: 8.4, sit: false },
-    { n: 8, title: "8 结婚", col: 0x9a8ac8, x: 5.4, z: 8.4, sit: false },
+    { n: 0, title: "0 长长久久", col: 0xe49048, x: 0, z: -9.4, sit: false },
+    { n: 1, title: "1 10th", col: 0xc06060, x: -5.4, z: -5.1, sit: false },
+    { n: 2, title: "2 你的爱情", col: 0xf090a8, x: 5.4, z: -5.1, sit: false },
+    { n: 3, title: "3 闪光的回忆", col: 0xe4cc6c, x: -5.4, z: -0.6, sit: false },
+    { n: 4, title: "4 哪里是你的拥抱", col: 0x90e4b4, x: 5.4, z: -0.6, sit: false },
+    { n: 5, title: "5 海鸥", col: 0x78b4e4, x: -5.4, z: 3.9, sit: true },
+    { n: 6, title: "6 一万次悲伤", col: 0x84a8e4, x: 5.4, z: 3.9, sit: false },
+    { n: 7, title: "7 夜空中最亮的星", col: 0x48609c, x: -5.4, z: 8.4, sit: false },
+    { n: 8, title: "8 结婚", col: 0xa884f0, x: 5.4, z: 8.4, sit: false },
   ];
   const guestColors = [0xb56b6b, 0x6b7eb5, 0xc4a35a, 0x4f8f7b, 0xe2b3c9, 0x5d6f8a, 0xcfc6b8];
 
