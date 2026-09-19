@@ -143,6 +143,85 @@ export function makeSign(text, w = 1.4, h = 0.5) {
   return mesh;
 }
 
+function makeShopSign(title, sub, w = 3.55, h = 1.42) {
+  const c = document.createElement("canvas");
+  c.width = 1024;
+  c.height = 420;
+  const ctx = c.getContext("2d");
+  const g = ctx.createLinearGradient(0, 0, 0, 420);
+  g.addColorStop(0, "#8b1e28");
+  g.addColorStop(0.55, "#5c1218");
+  g.addColorStop(1, "#2e0c10");
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 1024, 420);
+  ctx.strokeStyle = "#f0d48a";
+  ctx.lineWidth = 22;
+  ctx.strokeRect(18, 18, 988, 384);
+  ctx.strokeStyle = "#fff3c4";
+  ctx.lineWidth = 6;
+  ctx.strokeRect(40, 40, 944, 340);
+  ctx.fillStyle = "#fff1b8";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.font = "bold 118px 'Noto Serif SC', serif";
+  ctx.fillText(title, 512, 175);
+  ctx.font = "46px 'Noto Serif SC', serif";
+  ctx.fillStyle = "#ffe08a";
+  ctx.fillText(sub, 512, 300);
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return new THREE.Mesh(
+    new THREE.PlaneGeometry(w, h),
+    new THREE.MeshStandardMaterial({
+      map: tex,
+      emissiveMap: tex,
+      emissive: 0xffcc77,
+      emissiveIntensity: 0.62,
+      roughness: 0.38,
+      metalness: 0.22,
+      side: THREE.DoubleSide,
+    })
+  );
+}
+
+function casinoShopfront(scene, x, z, colliders) {
+  const postH = 3.28;
+  addBox(scene, mat(0x3a2018, { roughness: 0.42 }), 0.16, postH, 0.16, x - 1.62, postH / 2, z, colliders);
+  addBox(scene, mat(0x3a2018, { roughness: 0.42 }), 0.16, postH, 0.16, x + 1.62, postH / 2, z, colliders);
+  addBox(
+    scene,
+    mat(0xc4a35a, { metalness: 0.5, roughness: 0.28, emissive: 0xaa7722, emissiveIntensity: 0.32 }),
+    3.5,
+    0.14,
+    0.14,
+    x,
+    postH + 0.04,
+    z,
+    null
+  );
+  const board = makeShopSign("钟老板赌坊", "猜大小 · 筹码翻倍");
+  board.position.set(x, 2.42, z);
+  scene.add(board);
+  [-1.62, 1.62].forEach((dx) => {
+    const lamp = new THREE.Mesh(
+      new THREE.SphereGeometry(0.16, 12, 10),
+      mat(0xffd27a, { emissive: 0xffc14d, emissiveIntensity: 1.55, roughness: 0.22 })
+    );
+    lamp.position.set(x + dx, postH + 0.22, z);
+    scene.add(lamp);
+  });
+  const glow = new THREE.PointLight(0xffc878, 1.55, 12, 2);
+  glow.position.set(x, 2.55, z + 0.55);
+  scene.add(glow);
+  const pad = new THREE.Mesh(
+    new THREE.CircleGeometry(1.55, 24),
+    mat(0x7a1c24, { emissive: 0xaa5533, emissiveIntensity: 0.35, roughness: 0.5 })
+  );
+  pad.rotation.x = -Math.PI / 2;
+  pad.position.set(x, 0.04, z + 0.35);
+  scene.add(pad);
+}
+
 export function createKid({ shirt = PAL.shirt, hair = PAL.hair, skin = PAL.skin, name = "" } = {}) {
   const root = new THREE.Group();
   const torso = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.42, 0.2), mat(shirt));
@@ -939,9 +1018,7 @@ export function createResort(texVenue) {
   scene.add(zhongyi);
   addBox(scene, mat(PAL.wood), 1.4, 0.7, 1.4, 8.3, 0.35, lawnZ + 8, colliders);
   addBox(scene, mat(0xf2ead2), 0.7, 0.06, 0.7, 8.3, 0.74, lawnZ + 8, null);
-  const gambleSign = makeSign("钟老板赌坊", 1.8, 0.48);
-  gambleSign.position.set(8.3, 1.35, lawnZ + 7.35);
-  scene.add(gambleSign);
+  casinoShopfront(scene, 8.3, lawnZ + 6.55, colliders);
 
   const groups = [
     { at: [-11.5, lawnZ + 7], ids: ["zhou", "hua", "lin"] },
@@ -991,7 +1068,7 @@ export function createResort(texVenue) {
     marker: awenMark,
     locked: true,
   });
-  const zyMark = addMarker(scene, 8.5, 1.85, lawnZ + 8);
+  const zyMark = addMarker(scene, 8.5, 3.15, lawnZ + 7.2, { tall: true, size: 0.34, color: 0xc45c4a, emissive: 0xff8866 });
   zyMark.visible = false;
   interactives.push({
     id: "zhongyi",

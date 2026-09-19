@@ -135,7 +135,7 @@ window.GAME_DATA = {
     },
     {
       id: "wu",
-      name: "老吴",
+      name: "二元",
       shirt: 0x6b5344,
       hair: 0x4a4038,
       hello: "认识他们超过十五年了，看着长大的那种。",
